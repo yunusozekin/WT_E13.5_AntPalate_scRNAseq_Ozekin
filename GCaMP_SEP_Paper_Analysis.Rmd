@@ -1,0 +1,118 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{css, echo = F}
+caption {
+      color: blue;
+      font-weight: bold;
+      font-size: 2.0em;
+    }
+```
+
+
+```{r, results='hide', message=FALSE, warning=FALSE, error=FALSE}
+library(Seurat)
+library(devtools)
+library(sctransform)
+library(ggplot2)
+library(dplyr)
+library(ggsci)
+library(cowplot)
+library(patchwork)
+library(multtest)
+library(ComplexHeatmap)
+library(tictoc)
+library(topGO)
+library(Matrix)
+library(Scillus)
+library(clusterProfiler)
+library(knitr)
+library(tidyr)
+library(viridis)
+options(future.globals.maxSize = 4000 * 1024^2)
+```
+
+```{r}
+mypal <- pal_igv(palette = "default",alpha = 1)(30)
+mem.maxVSize(vsize = 32000000000)
+```
+
+```{r}
+int.seurat <- readRDS(file = "RDSfiles/int3.clustered.RDS")
+DefaultAssay(int.seurat) <- "SCT"
+levels(int.seurat) <- c("Mes_1", "Mes_2", "Mes_3", "Mes_4", "Prolif_1", "Prolif_2", "Prolif_3", "Ep_1", "Ep_2", "End", "Imm", "Schw")
+```
+
+```{r}
+DimPlot(int.seurat, label = T, repel = T, label.size = 6) & theme_cowplot() & NoLegend()
+
+```
+
+```{r}
+#Overlap of dpp and stim 
+#jpeg("Gja1_Kcnj2.jpeg", width = 400, height = 75, units = "mm", res = 300)
+FeaturePlot(int.seurat, features = c("Gja1", "Kcnj2"), order = T, min.cutoff = "q1", max.cutoff = "q99", blend = T,cols = c("gray30", "seagreen1", "sienna2"), blend.threshold = 0.5, pt.size = 1) & theme_cowplot() & NoLegend()
+#dev.off()
+
+#jpeg("Gjc1_Gja1.jpeg", width = 400, height = 75, units = "mm", res = 300)
+FeaturePlot(int.seurat, features = c("Gjc1", "Gja1"), order = T, min.cutoff = "q1", max.cutoff = "q99", blend = T,cols = c("gray30", "seagreen1", "sienna2"), blend.threshold = 0.5, pt.size = 1) & theme_cowplot() & NoLegend()
+#dev.off()
+
+#jpeg("Bmp4_Kcnj2.jpeg", width = 400, height = 75, units = "mm", res = 300)
+FeaturePlot(int.seurat, features = c("Bmp4", "Kcnj2"), order = T, min.cutoff = "q1", max.cutoff = "q99", blend = T,cols = c("gray30", "seagreen1", "sienna2"), blend.threshold = 0.5, pt.size = 1) & theme_cowplot() & NoLegend()
+#dev.off()
+
+FeaturePlot(int.seurat, features = c("Bmp2", "Kcnj2"), order = T, min.cutoff = "q1", max.cutoff = "q100", blend = T,cols = c("gray30", "seagreen1", "sienna2"), blend.threshold = 0.5, pt.size = 1) & theme_cowplot() & NoLegend()
+```
+
+```{r, fig.width=25, fig.height=20}
+
+#jpeg("IonChannelWT.jpeg", width = 400, height = 300, units = "mm", res = 250)
+FeaturePlot(int.seurat, cols = c("gray30", "seagreen1"), features = c("Kcnn2", "Cacna1c", "Cacna1d", "Cacna1a", "Cacna1g", "Kcnj2", "Kcnb2", "Kcnc3", "Atp2a2", "Stim1", "Stim2", "Scn3a", "Scn8a", "Gja1", "Gjc1"), order = T, pt.size = .5, ncol = 5) & theme_cowplot() & NoLegend()
+#dev.off()
+
+```
+
+```{r, fig.width=25, fig.height=20}
+
+#jpeg("IonChannelWT1.jpeg", width = 200, height = 150, units = "mm", res = 300)
+FeaturePlot(int.seurat, cols = c("gray30", "seagreen1"), features = c("Cacna1c", "Cacna1d", "Cacna1a", "Cacna1g"), order = T, pt.size = .75, ncol = 2) & theme_cowplot() 
+#dev.off()
+
+#jpeg("IonChannelWT2.jpeg", width = 400, height = 225, units = "mm", res = 300)
+FeaturePlot(int.seurat, cols = c("gray30", "seagreen1"), features = c( "Kcnj2", "Kcnb1", "Kcnb2", "Kcnc3", "Kcnn2", "Atp2a2", "Stim1", "Stim2", "Scn3a", "Scn8a", "Gja1", "Gjc1"), order = T, pt.size = .75, ncol = 4) & theme_cowplot() 
+#dev.off()
+
+```
+
+```{r}
+
+#jpeg("Aspn_Kcnj2.jpeg", width = 400, height = 75, units = "mm", res = 300)
+FeaturePlot(int.seurat, features = c("Aspn", "Kcnj2"), order = T, min.cutoff = "q0", max.cutoff = "q99", blend = T,cols = c("gray30", "seagreen1", "sienna2"), blend.threshold = 0, pt.size = 1) & theme_cowplot() & NoLegend()
+#dev.off()
+```
+
+
+```{r, fig.width=20, fig.height=40}
+#jpeg("Potassium_FeaturePlot.jpeg", width = 400, height = 1000, units = "mm", res = 300)
+FeaturePlot(int.seurat, cols = c("gray30", "seagreen1"), features = c("Kcnc1", "Kcnc2", "Kcnd1", "Kcnd2", "Kcnd3", "Kcne1", "Kcne3", "Kcne4", "Kcne1l", "Kcnf1", "Kcng1", "Kcng2", "Kcng3", "Kcng4", "Kcnh1", "Kcnh3", "Kcnh5", "Kcnh7", "Kcnh8", "Kcnj3", "Kcnj4", "Kcnj6", "Kcnj7", "Kcnj8", "Kcnj9", "Kcnj13", "Kcnj14", "Kcnj15", "Kcnj16", "Kcnk1", "Kcnk2", "Kcnk3", "Kcnk4", "Kcnk5", "Kcnk6", "Kcnk7", "Kcnma1", "Kcnmb1", "Kcnmb2", "Kcnmb3", "Kcnmb4", "Kcnn1", "Kcnn2", "Kcnn3", "Kcnn4", "Kcnq2", "Kcnq3", "Kcnq4", "Kcnq5", "Kcns1", "Kcns2", "Kcns3", "Kcnt1", "Kcnt2", "Kcnu1", "Kcnv1", "Kcnv2"), order = T, pt.size = .75, ncol = 4) & theme_cowplot() 
+#dev.off()
+```
+
+```{r, fig.width=20, fig.height=40}
+#jpeg("Calcium_FeaturePlot.jpeg", width = 400, height = 400, units = "mm", res = 300)
+FeaturePlot(int.seurat, cols = c("gray30", "seagreen1"), features = c("Orai1", "Orai2", "Orai3", "Cacna1h", "Cacna2d1", "Cacna2d2", "Cacna2d3", "Cacna2d4", "Cacnb1", "Cacnb2", "Cacnb3", "Cacnb4", "Cacng1", "Cacng4", "Cacng5", "Cacng7", "Cacng8"), order = T, pt.size = .75, ncol = 4) & theme_cowplot() 
+#dev.off()
+```
+
+```{r, fig.width=20, fig.height=20}
+#jpeg("Sodium_FeaturePlot.jpeg", width = 400, height = 400, units = "mm", res = 300)
+FeaturePlot(int.seurat, cols = c("gray30", "seagreen1"), features = c("Scn1a", "Scn2a1", "Scn3a", "Scn4a", "Scn5a", "Scn7a", "Scn8a", "Scn9a", "Scn1b", "Scn2b", "Scn3b", "Scn4b", "Scn5", "Scn11a", "Scnn1a", "Scnn1b", "Scnn1g"), order = T, pt.size = .75, ncol = 4) & theme_cowplot()
+#dev.off()
+```
+
+
